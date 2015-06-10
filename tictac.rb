@@ -13,8 +13,23 @@ class Board
 
   # puts the token on the board
   def put(linha, column, symbol)
-    @board[linha][column] = symbol
+    if @board[linha][column] == ' '
+      @board[linha][column] = symbol
+    end
   end
+
+  # muda de 2 para 0 e de 0 para 2
+  def change(x)
+    if x != 1
+      x == 2 ? 0 : 2
+    end
+  end
+
+  # puts the token on the opposite position
+  def put_opposite(linha, column, symbol)
+    put(change(linha), change(column), symbol)
+  end
+
 
   # verifies if someone won the game
   def win?
@@ -50,7 +65,17 @@ class Board
   def place_empty?(linha, coluna)
     @board[linha.to_i - 1][coluna.to_i - 1] == ' '
   end
+
+  def jogada_computador
+    puts 'Jogada do computador:'
+    show
+  end
+
 end
+
+@corners = [[0, 0], [0, 3], [3, 0], [3, 3]]
+
+
 
 # inicia jogo
 def start
@@ -117,15 +142,16 @@ end
 # starts a turn
 def jogada(n, s, game)
   loop do
-    linha = asks('linha', n, s)
-    coluna = asks('coluna', n, s)
-    if game.place_empty?(linha, coluna)
-      game.put(linha.to_i - 1, coluna.to_i - 1, s)
+    @linha = asks('linha', n, s)
+    @coluna = asks('coluna', n, s)
+    if game.place_empty?(@linha, @coluna)
+      game.put(@linha - 1, @coluna - 1, s)
       break
     else
       puts 'Nao podes colocal num local que ja esta marcado!'
     end
   end
+  @lastplay = [@linha - 1, @coluna - 1]
   end?(game, n)
 end
 
@@ -146,36 +172,68 @@ end
 def one_player(game)
   r = rand(2)
   if r == 0
-    ia_first(game)
+    ia_first_first(game)
   else
     player_first(game)
   end
 end
 
-# case where ia is first
-def ia_first(game)
+# first turn in the case where IA is first
+def ia_first_first(game)
   game_start('Computador', 'Jogador', game)
-  a = rand(2) * 2
-  b = rand(2) * 2
-  game.put(a, b, 'x')
+  @a = rand(2) * 2
+  @b = rand(2) * 2
+  game.put(@a, @b, 'x')
   game.show
-  end?(game, 'Computador')
   jogada('Jogador', 'o', game)
-  if game.place_empty?(2, 2)
+  ia_first_second(game)
+end
 
+# second turn in the case where IA is first
+def ia_first_second(game)
+  if @lastplay == [1, 1]
+    ia_second_move_center(game)
   else
-    ia_second_move_middle(change(a), change(b), game)
+    ia_second_move_not_center(game)
   end
 end
 
-def ia_second_move_middle(a, b, game)
-  game.put(a, b, 'x')
-  end?(game, 'Computador')
+# second turn if plarer put token in the center
+def ia_second_move_center(game)
+  game.put_opposite(@a, @b, 'x')
+  game.jogada_computador
+  jogada('Jogador', 'o', game)
+  ia_first_third_1(game)
 end
 
-# muda de 2 para 0 e de 0 para 2
-def change(x)
-  x == 2 ? 0 : 2
+# second turn if player NOT put token in the center
+def ia_second_move_not_center(game)
+
+end
+
+
+
+# third turn, option 1
+def ia_first_third_1(game)
+  if @corners.include?(@lastplay)
+    game.put_opposite(@lastplay[0], @lastplay[1], 'x')
+    game.jogada_computador
+    jogada('Jogador', 'o', game)
+  else
+
+  end
+end
+
+# tentar
+def ia_try_win(game)
+  c = false
+  for i in (0..2)
+    for j in (0..2)
+      fake_game = game
+      fake_game.put(i, j, 'x')
+      c = fake_game.win?
+    end
+  end
 end
 
 
