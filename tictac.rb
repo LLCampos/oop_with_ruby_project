@@ -1,5 +1,4 @@
 class Board
-
   def initialize
     @board = [[' ', ' ', ' '], [' ', ' ', ' '], [' ', ' ', ' ']]
   end
@@ -13,9 +12,7 @@ class Board
 
   # puts the token on the board
   def put(linha, column, symbol)
-    if @board[linha][column] == ' '
-      @board[linha][column] = symbol
-    end
+    @board[linha][column] = symbol if @board[linha][column] == ' '
   end
 
   # muda de 2 para 0 e de 0 para 2
@@ -30,10 +27,9 @@ class Board
     put(change(linha), change(column), symbol)
   end
 
-
   # verifies if someone won the game
   def win?
-    linha?(@board) || linha?(@board.transpose) || diagonal?(@board) || diagonal?(@board.map(&:reverse))
+    linha?(@board) || linha?(@board.transpose) || linha?(diagonals)
   end
 
   # verifica se todos os elementos sao iguais e nao espacos
@@ -48,10 +44,9 @@ class Board
     end
   end
 
-  # verfica se ha 3 em diagonal
-  def diagonal?(board)
-    linha = (0..2).map { |x| board[x][x] }
-    same?(linha)
+  # give the diagonals in two rows
+  def diagonals
+    [diagonal(@board), diagonal(@board.map(&:reverse))]
   end
 
   # checks if the board is draw
@@ -71,11 +66,36 @@ class Board
     show
   end
 
+  def winning_position(symbol)
+    a = [check_two_in_row?(@board, symbol), check_two_in_row?(@board.transpose, symbol), check_two_in_row?(diagonals, symbol)]
+    a.find { |x| !x.nil? }
+  end
+
+  def put_winning_position(symbol)
+    a = winning_position(symbol)
+    put(a[0], a[1], 'x')
+  end
+end
+
+# checks if there is two equal tokens same row (line, column or diagonal)
+def check_two_in_row?(rows, symbol)
+  a = rows.map.with_index do |x, index|
+    [index, two?(x, symbol)].compact
+  end
+  a.find { |x| x.size == 2 }
+end
+
+# returns the index of a winning position or nil if there isn't such position
+def two?(array, symbol)
+  array.count(symbol) == 2 ? array.find_index(' ') : nil
+end
+
+# first diagonal of a board
+def diagonal(board)
+  (0..2).map { |x| board[x][x] }
 end
 
 @corners = [[0, 0], [0, 3], [3, 0], [3, 3]]
-
-
 
 # inicia jogo
 def start
@@ -216,27 +236,12 @@ end
 # third turn, option 1
 def ia_first_third_1(game)
   if @corners.include?(@lastplay)
-    game.put_opposite(@lastplay[0], @lastplay[1], 'x')
-    game.jogada_computador
+    put_opposite(@lastplay[0], @lastplay[1], 'x')
+    jogada_computador
     jogada('Jogador', 'o', game)
   else
 
   end
 end
-
-# tentar
-def ia_try_win(game)
-  c = false
-  for i in (0..2)
-    for j in (0..2)
-      fake_game = game
-      fake_game.put(i, j, 'x')
-      c = fake_game.win?
-    end
-  end
-end
-
-
-
 
 start
