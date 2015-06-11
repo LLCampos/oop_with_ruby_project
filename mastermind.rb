@@ -123,31 +123,38 @@ def victory_code_breaker
 end
 
 def compare_codes(code1, code2)
-  a = compare(code1, code2)
-  if a[0] == 4
+  cpr = cpr(code1, code2)
+  cr = cr(code1, code2)
+  if cpr == 4
     victory_code_breaker
   else
-    puts "You have #{a[0]} pegs of the right color in the right place and #{a[1]} pegs of the right color in wrong place!"
+    puts "You have #{cpr} pegs of the right color in the right place and #{cr} pegs of the right color in wrong place!"
   end
 end
 
-def compare(code1, code2)
-  @cpr = 0
-  @cr = 0
-  code1.each do |peg1|
-    code2.each do |peg2|
-      if peg1.color == peg2.color
-        if peg1.position == peg2.position
-          @cpr += 1
-        else
-          @cr += 1
+
+def cr(code1, code2)
+  cr = 0
+  code1.each_with_index do |peg, index|
+    (1..3).each do |x|
+      if peg.color != code2[index].color
+        if peg.color == code2.rotate(x)[index].color
+          cr += 1
+          puts cr
+          break
         end
-        break
-      else
       end
     end
   end
-  [@cpr, @cr]
+  cr
+end
+
+def cpr(code1, code2)
+  cpr = 0
+  (0..3).each do |x|
+    cpr += 1 if code1[x].color == code2[x].color
+  end
+  cpr
 end
 
 
