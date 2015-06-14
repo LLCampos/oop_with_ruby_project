@@ -61,28 +61,56 @@ class Board
     @board[linha.to_i - 1][coluna.to_i - 1] == ' '
   end
 
+  # shows board after IA plays and check if he won
   def jogada_computador
     puts 'Jogada do computador:'
-    show
+    end?('Computador')
   end
 
   def winning_position(symbol)
-    a = [check_two_in_row?(@board, symbol), check_two_in_row?(@board.transpose, symbol), check_two_in_row?(diagonals, symbol)]
+    a = [check_two_in_row?(@board, symbol), check_two_in_row?(@board.transpose, symbol).map(&:rotate), check_two_in_row?(diagonals, symbol)]
     a.find { |x| !x.nil? }
   end
 
   def put_winning_position(symbol)
     a = winning_position(symbol)
-    put(a[0], a[1], 'x')
+    if !a.nil?
+      put(a[0], a[1], 'x')
+      jogada_computador
+    else
+      false
+    end
+  end
+
+  def ia_play
+    if put_winning_position('x') == false
+      put_winning_position('o')
+    else
+      put_winning_position('x')
+    end
+  end
+
+  # verifies if the game ended
+  def end?(n)
+    show
+    if win?
+      puts "Parabens,#{n}, venceu o jogo!"
+      continuar?
+      exit
+    elsif draw?
+      puts 'Empate!'
+      continuar?
+    end
   end
 end
 
 # checks if there is two equal tokens same row (line, column or diagonal)
 def check_two_in_row?(rows, symbol)
-  a = rows.map.with_index do |x, index|
-    [index, two?(x, symbol)].compact
+  a = []
+  rows.each_with_index do |x, index|
+    a << [index, two?(x, symbol)] if [index, two?(x, symbol)].compact.size == 2
   end
-  a.find { |x| x.size == 2 }
+  a
 end
 
 # returns the index of a winning position or nil if there isn't such position
@@ -95,7 +123,7 @@ def diagonal(board)
   (0..2).map { |x| board[x][x] }
 end
 
-@corners = [[0, 0], [0, 3], [3, 0], [3, 3]]
+@corners = [[0, 0], [0, 2], [2, 0], [2, 2]]
 
 # inicia jogo
 def start
@@ -146,18 +174,7 @@ def asks(lc, n, s)
   @input
 end
 
-# verifies if the game ended
-def end?(game, n)
-  game.show
-  if game.win?
-    puts "Parabens,#{n}, venceu o jogo!"
-    continuar?
-    exit
-  elsif game.draw?
-    puts 'Empate!'
-    continuar?
-  end
-end
+
 
 # starts a turn
 def jogada(n, s, game)
@@ -172,9 +189,10 @@ def jogada(n, s, game)
     end
   end
   @lastplay = [@linha - 1, @coluna - 1]
-  end?(game, n)
+  game.end?(n)
 end
 
+# after the end of the game, asks user if we wants to play again
 def continuar?
   puts 'Novo Jogo?(Y/N)'
   input = gets.chomp.downcase
@@ -218,7 +236,7 @@ def ia_first_second(game)
   end
 end
 
-# second turn if plarer put token in the center
+# second turn if player put token in the center
 def ia_second_move_center(game)
   game.put_opposite(@a, @b, 'x')
   game.jogada_computador
@@ -228,19 +246,15 @@ end
 
 # second turn if player NOT put token in the center
 def ia_second_move_not_center(game)
-
 end
 
 
 
 # third turn, option 1
 def ia_first_third_1(game)
-  if @corners.include?(@lastplay)
-    put_opposite(@lastplay[0], @lastplay[1], 'x')
-    jogada_computador
+  loop do
+    game.ia_play
     jogada('Jogador', 'o', game)
-  else
-
   end
 end
 

@@ -42,22 +42,6 @@ def random_peg(n)
 end
 
 
-# asks the user which style of game he wants
-def game_choice
-  loop do
-    puts 'What do you want to be?'
-    puts '1 - Code Breaker'
-    puts '2 - Code Maker'
-    @input = gets.chomp
-    if @input == '1' || @input == '2'
-      break
-    else
-      'You have to choose 1 or 2!'
-    end
-  end
-  @input
-end
-
 def peg_choice
   loop do
     puts "Colors: #{colors.join(', ')}"
@@ -71,16 +55,13 @@ def peg_choice
   @input
 end
 
+# starts game
 def new_game
-  puts 'Hello, welcome to Mastermind!'
-  input = game_choice
-  if input == '1'
-    code_breaker
-  else
-    code_maker
-  end
+  puts 'Hello, welcome to Mastermind!!!'
+  code_breaker
 end
 
+# prompts the user to choose his code
 def user_guess_choice
   (0..3).to_a.map do |x|
     puts "Which peg will you put on position #{x + 1}?"
@@ -88,15 +69,14 @@ def user_guess_choice
   end
 end
 
-# begin of game when user is the Code Breaker
+# game when user is the Code Breaker
 def code_breaker
   rcode = random_code
-  puts rcode.show_code
   puts 'The computer already choose its code. Make your guess:'
   user_guess = a_to_c(user_guess_choice)
   puts 'Your guess:'
   puts user_guess.show_code
-  compare_codes(user_guess.code, rcode.code)
+  compare_codes(user_guess.show_code.split, rcode.show_code.split, user_guess.show_code.split)
   i = 9
   while i > 0
     puts "You have #{i} more guesses!"
@@ -107,24 +87,24 @@ def code_breaker
   new_game
 end
 
-
+# a turn
 def turns(rcode)
   puts 'Make your new guess:'
   user_guess = a_to_c(user_guess_choice)
   puts 'Your new guess:'
   puts user_guess.show_code
-  compare_codes(user_guess.code, rcode.code)
+  compare_codes(user_guess.show_code.split, rcode.show_code.split, user_guess.show_code.split)
 end
 
-
+# victory message and restart game
 def victory_code_breaker
   puts 'Congratulations Code Breaker, you won!'
   new_game
 end
 
-def compare_codes(code1, code2)
-  cpr = cpr(code1, code2)
-  cr = cr(code1, code2)
+# compares codes from codebreaker and codemaker
+def compare_codes(code1, code2, code12)
+  cpr, cr = cpr_and_cr(code1, code2, code12)
   if cpr == 4
     victory_code_breaker
   else
@@ -132,29 +112,24 @@ def compare_codes(code1, code2)
   end
 end
 
-
-def cr(code1, code2)
-  cr = 0
-  code1.each_with_index do |peg, index|
-    (1..3).each do |x|
-      if peg.color != code2[index].color
-        if peg.color == code2.rotate(x)[index].color
-          cr += 1
-          puts cr
-          break
-        end
-      end
-    end
+# delete elements in the same position and color
+def del_cpr(x, y)
+  x.delete_if.with_index do |peg, index|
+    peg == y[index]
   end
-  cr
 end
 
-def cpr(code1, code2)
-  cpr = 0
-  (0..3).each do |x|
-    cpr += 1 if code1[x].color == code2[x].color
-  end
-  cpr
+# gives cpr (color and position right) and cr (color right)
+def cpr_and_cr(code1, code2, code12)
+  del_cpr(code1, code2)
+  del_cpr(code2, code12)
+  cpr = 4 - code1.size
+  cr = cr(code1, code2)
+  [cpr, cr]
+end
+
+def cr(code1, code2)
+  code1.size - (code1 - code2).size
 end
 
 
