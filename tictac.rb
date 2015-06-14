@@ -67,23 +67,39 @@ class Board
     end?('Computador')
   end
 
+
   def winning_position(symbol)
-    a = [check_two_in_row?(@board, symbol), check_two_in_row?(@board.transpose, symbol).map(&:rotate), check_two_in_row?(diagonals, symbol)]
+    a = check_two_in_row?(@board, symbol) + check_two_in_row?(@board.transpose, symbol).map(&:rotate) + diagonal_position_to_board(check_two_in_row?(diagonals, symbol))
     a.find { |x| !x.nil? }
+  end
+
+  def diagonal_position_to_board(arr)
+    (0..arr.size-1).each do |diag|
+      if arr[diag][0] == 0
+        arr[diag][0] = arr[diag][1]
+      else
+        if arr[diag][1] == 2
+          arr[diag] = [2, 0]
+        elsif arr[diag][1] == 0
+          arr[diag] = [0, 2]
+        end
+      end
+    end
+    arr
   end
 
   def put_winning_position(symbol)
     a = winning_position(symbol)
-    if !a.nil?
+    if a.nil?
+      false
+    else
       put(a[0], a[1], 'x')
       jogada_computador
-    else
-      false
     end
   end
 
   def ia_play
-    if put_winning_position('x') == false
+    if winning_position('x').nil?
       put_winning_position('o')
     else
       put_winning_position('x')
