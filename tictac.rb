@@ -60,7 +60,6 @@ class Board
     end?('Computador')
   end
 
-
   def winning_position(symbol)
     a = check_two_in_row?(@board, symbol) + check_two_in_row?(@board.transpose, symbol).map(&:rotate) + diagonal_position_to_board(check_two_in_row?(diagonals, symbol))
     a.find { |x| !x.nil? }
@@ -92,10 +91,14 @@ class Board
   end
 
   def ia_play
-    if winning_position('x').nil?
-      put_winning_position('o')
-    else
+    if !winning_position('x').nil?
       put_winning_position('x')
+    elsif !winning_position('o').nil?
+      put_winning_position('o')
+    elsif token_alone
+      put_token_alone
+    else
+      ia_random_play(empty_positions)
     end
   end
 
@@ -110,6 +113,59 @@ class Board
       puts 'Empate!'
       continuar?
     end
+  end
+
+  # find token alone on column or line
+  def token_alone
+    a = @board.index do |x|
+      x.count('x') == 1 && x.count(' ') == 2
+    end
+    if a.nil?
+      a = @board.transpose.index do |x|
+        x.count('x') == 1 && x.count(' ') == 2
+      end
+      if a.nil?
+        false
+      else
+        b = @board[a].index { |x| x == 'x' }
+        if b == 1
+          [rand(2) * 2, a]
+        else
+          [change(b), a]
+        end
+      end
+    else
+      b = @board[a].index { |x| x == 'x' }
+      if b == 1
+        [a, rand(2) * 2]
+      else
+        [a, change(b)]
+      end
+    end
+  end
+
+  def put_token_alone
+    n = token_alone
+    put(n[0], n[1], 'x')
+    jogada_computador
+  end
+
+  # finds which positions are empty
+  def empty_positions
+    a = []
+    @board.each_with_index do |x, linha|
+      x.each_with_index do |y, coluna|
+        a << [linha, coluna] if y == ' '
+      end
+    end
+    a
+  end
+
+  # makes a random move on one of the empty spaces
+  def ia_random_play(empty)
+    p = empty.sample
+    put(p[0], p[1], 'x')
+    jogada_computador
   end
 end
 
@@ -191,7 +247,6 @@ def asks(lc, n, s)
 end
 
 
-
 # starts a turn
 def jogada(n, s, game)
   loop do
@@ -261,7 +316,6 @@ def ia_second_move_center(game)
   ia_first_third_1(game)
 end
 
-
 # second turn if player NOT put token in the center
 def ia_second_move_not_center(game)
   b = @lastiaplay[0]
@@ -274,22 +328,25 @@ def ia_second_move_not_center(game)
     rand(1) == 0 ? game.put(change(b), c, 'x') : game.put(b, change(c), 'x')
   end
   game.jogada_computador
-  jogada('Jogador', 'o', game)
-  if !game.winning_position('x').nil?
-    game.put_winning_position('x')
-  else
+  loop do
+    jogada('Jogador', 'o', game)
+    game.ia_play
   end
-  jogada('Jogador', 'o', game)
-  game.ia_play
 end
-
-
 
 # third turn, option 1
 def ia_first_third_1(game)
   loop do
     game.ia_play
     jogada('Jogador', 'o', game)
+  end
+end
+
+def player_first(game)
+  game_start('Jogador', 'Computador', game)
+  loop do
+    jogada('Jogador', 'o', game)
+    game.ia_play
   end
 end
 
