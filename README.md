@@ -8,3 +8,5 @@ Two command line games built on Ruby:
 From what I remember (I built them 6 months ago), both of the games have bugs.
 
 Part of the curriculum of The Odin Project (http://www.theodinproject.com/ruby-programming/oop?ref=lc-pb)
+
+Update 13/05/2016 - I only really got OOP recently so this is probably pretty bad. :P 
